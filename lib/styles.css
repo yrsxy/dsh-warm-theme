@@ -1,0 +1,129 @@
+/* ============================================================
+   dsh-warm-theme — 样式表
+
+   分两部分：
+   1. 设置行自身样式（.wt_*）—— 纯 token
+   2. macOS 侧边栏底色修正（见文件末尾）—— 唯一的非 token 例外
+   ============================================================ */
+
+/* ---------- 1. 设置行 ---------- */
+
+.wt_row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+}
+
+.wt_head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wt_title {
+  font-size: var(--dsw-font-xs-13, 13px);
+  font-weight: 600;
+  color: var(--dsw-alias-label-primary);
+}
+
+.wt_hint {
+  font-size: 12px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.wt_grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wt_opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  border-radius: var(--dsw-radius-md, 8px);
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-secondary);
+  transition: border-color .15s, background .15s, color .15s;
+}
+
+.wt_opt:hover {
+  border-color: var(--dsw-alias-border-l4, var(--dsw-alias-border-l3));
+  background: var(--dsw-alias-interactive-bg-hover, var(--dsw-alias-bg-layer-2));
+  color: var(--dsw-alias-label-primary);
+}
+
+.wt_opt[data-active='true'] {
+  border-color: var(--dsw-alias-brand-primary);
+  color: var(--dsw-alias-label-primary);
+  font-weight: 600;
+  background: var(--dsw-alias-interactive-bg-active, var(--dsw-alias-bg-layer-2));
+}
+
+.wt_opt:focus-visible {
+  outline: 2px solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));
+  outline-offset: 2px;
+}
+
+.wt_dot {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  border-radius: 50%;
+  border: 1px solid var(--dsw-alias-border-l2);
+}
+
+/* 「跟随内置」没有色块，用虚线圈示意 */
+.wt_dot_none {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--dsw-alias-label-tertiary);
+}
+
+.wt_name {
+  white-space: nowrap;
+}
+
+.wt_desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+/* ---------- 2. macOS 侧边栏底色 ----------
+ *
+ * 背景：ui-sidebar 的根容器写了 background: var(--dsw-specific-sidebar-fill)，
+ * 但紧接着有一条平台覆盖把它置空：
+ *
+ *     [data-platform=darwin] .<hash>_root { background: 0 0 }
+ *
+ * 于是 macOS 上侧栏透明，透出 ui-layout 的 .<hash>_frame
+ * （background: var(--dsw-alias-bg-base)）—— 与正文区同色。
+ * 这是 DSH 在 macOS 上的原生设计：侧栏与正文同底，靠边框分隔。
+ * Windows 走另一条分支（frame 用 sidebar-fill），天然两段式；
+ * 这里给 macOS 补上同类效果。
+ *
+ * 选择器：两个包都用 CSS Modules，类名带构建哈希（_3WPZCG_root /
+ * _6Qf49G_frame），不能直接引用。改用 ui-sidebar 在侧栏根容器内
+ * 渲染的稳定标记 data-window-drag（macOS 标题栏拖拽区），以 :has()
+ * 反查其父容器补底色。
+ *
+ * 注意：不用 [data-sidebar-collapsed]——那是 frame 上的可选属性，
+ * 仅在折叠时存在（值为 undefined 时 React 不输出该属性），
+ * 展开时应为不存在，不能当常驻锚点。
+ *
+ * 失效行为：若 DSH 升级后属性改名，本规则静默失效，侧栏回落到
+ * 原生同色，不报错、不影响任何其它样式。
+ */
+div:has(> [data-window-drag]):not([data-window-drag]) {
+  background: var(--dsw-specific-sidebar-fill);
+}

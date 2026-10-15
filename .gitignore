@@ -1,0 +1,9 @@
+# 依赖
+node_modules/
+
+# 系统
+.DS_Store
+
+# 日志与临时
+*.log
+*.tmp

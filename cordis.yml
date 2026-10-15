@@ -1,0 +1,8 @@
+# dsh-warm-theme — DSH bundle patch
+# 顶层为 patch 行数组。由 package.json 的 `dsh.bundle.patch` 声明，
+# 经 `plugin_manager` (action: install_bundle) 安装后由 DSH 自动挂载。
+# 不要手工写进 profile 的 cordis.patch.yml —— 那是安装器负责的事。
+
+- insert:
+    - id: dsh-warm-theme
+      name: dsh-warm-theme
