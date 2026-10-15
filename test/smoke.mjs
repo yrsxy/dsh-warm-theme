@@ -237,4 +237,69 @@ assert(!!stylesEffect && !!stylesEffect.disposer, '样式 effect 提供了 dispo
 stylesEffect.disposer()
 assert(styleEl._parent === null, '卸载样式后 <style> 已从 head 移除')
 
+// ============================================================
+// 数据完整性：配色 token 的对比度与结构约束
+// 这些检查固定在测试里，避免以后加 token / 调色时悄悄退化。
+// ============================================================
+
+function lum(hex) {
+  const h = hex.replace('#', '').slice(0, 6)
+  const c = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255)
+    .map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)))
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+}
+function contrast(a, b) {
+  const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p)
+  return (x + 0.05) / (y + 0.05)
+}
+
+// 文字色必须在所有会出现的背景上 >= 4.5:1
+const TEXT_KEYS = [
+  '--dsw-alias-label-primary',
+  '--dsw-alias-label-secondary',
+  '--dsw-alias-label-tertiary',
+  '--dsw-alias-link',
+  '--dsw-alias-menu-icon',
+]
+const BG_KEYS = [
+  '--dsw-alias-bg-base',
+  '--dsw-alias-bg-layer-1',
+  '--dsw-alias-bg-layer-2',
+  '--dsw-alias-bg-layer-3',
+  '--dsw-specific-sidebar-fill',
+  '--dsw-alias-markdown-code-block',
+  '--dsw-alias-markdown-inline-code',
+  '--dsw-alias-markdown-code-block-banner',
+]
+let pairs = 0
+const failures = []
+for (const p of REF) {
+  for (const mode of ['light', 'dark']) {
+    for (const t of TEXT_KEYS) {
+      for (const b of BG_KEYS) {
+        pairs++
+        const r = contrast(p[mode][t], p[mode][b])
+        if (r < 4.5) failures.push(`${p.id}/${mode} ${t} on ${b} = ${r.toFixed(2)}`)
+      }
+    }
+  }
+}
+assert(failures.length === 0, `对比度 ${pairs} 组全部 >= 4.5:1${failures.length ? ' — ' + failures.slice(0, 3).join('; ') : ''}`)
+
+// 阴影墨色必须比背景更暗（否则深色模式下阴影会变成发光）
+for (const p of REF) {
+  const inkD = p.dark['--dsw-shadow-lv1'].match(/#([0-9a-f]{6})/)[1]
+  const ok = lum('#' + inkD) < lum(p.dark['--dsw-alias-bg-base'])
+  assert(ok, `${p.id} 深色阴影比背景更暗`)
+}
+
+// 五套配色必须给出不同的侧边栏底色（回归：曾经五套相同）
+const sidebars = new Set(REF.map((p) => p.light['--dsw-specific-sidebar-fill']))
+assert(sidebars.size === REF.length, `五套侧边栏底色各不相同（${sidebars.size}/${REF.length}）`)
+
+// 形状类 token 应覆盖内置值（防止被误删）
+for (const k of ['--dsw-radius-md', '--dsw-radius-panel', '--ds-transition-duration', '--dsh-scrollbar-width']) {
+  assert(!!REF[0].light[k], `覆盖了 ${k}`)
+}
+
 console.log(process.exitCode ? '\n有失败项' : '\n全部通过')
