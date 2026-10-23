@@ -71,8 +71,41 @@ npm view dsh-warm-theme version   # 应输出 0.2.0
 
 ## 2. GitHub 仓库
 
-> 当前环境 GitHub 不可达（github.com / api.github.com / raw.githubusercontent.com 全部 000），
-> 需要先开启代理再执行本节。
+### 2.1 网络：Watt Toolkit 能用，Clash 会打架
+
+Watt Toolkit 的「本地加速」不是代理，而是往 `/etc/hosts` 写了 48 条映射，把
+`github.com` / `api.github.com` / `raw.githubusercontent.com` 全部指向 `127.0.0.1`，
+再由它在本机 443 端口跑一个反向代理，用自签 CA（`CN = SteamTools Certificate`）做 TLS 终结。
+
+这里有两个后果，踩过一次：
+
+**① 浏览器能开 ≠ 命令行能连。**
+浏览器信任系统钥匙串里的这张 CA，所以网页正常；但 `curl` 用自己打包的 CA bundle，
+会直接报 `SSL certificate problem: unable to get local issuer certificate`，退出码 000 ——
+**看起来像"网络不通"，其实是证书不信任**。`git` 走系统钥匙串，所以 git 一直能连。
+
+修法是把根证书导出来喂给 curl：
+
+```sh
+security find-certificate -c "SteamTools Certificate" -p /Library/Keychains/System.keychain \
+  > ~/steamtools.pem
+curl --cacert ~/steamtools.pem https://api.github.com
+```
+
+> 同理，任何基于 curl 的工具（`npm`、`gh`、各种安装脚本）在 Watt Toolkit 下都可能被这条绊住。
+
+**② Clash 和 Watt Toolkit 同时开 = 互相废掉。**
+Clash 在系统代理模式下，应用程序把**域名**交给代理，由代理端做远程 DNS 解析 ——
+`/etc/hosts` 不参与，Watt Toolkit 那 48 条映射形同虚设，等于绕过加速器直接走代理节点连 GitHub。
+节点不稳就表现为"用了 Clash 反而进不去"。
+
+**结论：两个只能开一个。** 走 GitHub 时用 Watt Toolkit，别开系统代理。
+
+### 2.2 推送
+
+> 当前环境 GitHub 可达（git 已实测 `ls-remote` 成功），但**没有推送凭据**：
+> 未配置 credential helper、无 SSH key，`~/.ssh` 受沙箱保护写不进去。
+> 推送前需要先配一个 PAT 或 SSH key。
 
 ```sh
 cd /Users/yangrenshun/Desktop/code/diy/dsh-warm-theme
