@@ -1,8 +1,35 @@
 # dsh-warm-theme
 
-DSH 护眼配色主题包 —— 5 套低蓝光配色，通过官方 `ctx.theme.overrideTokens()` 扩展点覆盖语义 token。
+DSH 护眼配色包 —— 5 套低蓝光配色，通过官方 `ctx.theme.overrideTokens()` 扩展点覆盖语义 token。
 
-**零布局改动 · 热生效 · 卸载即可还原。**
+**零布局改动 · 热生效 · 卸载即可还原 · macOS / Windows 双平台。**
+
+## 安装
+
+```sh
+# 从 npm（推荐，秒装）
+dsh plugin --profile desktop add dsh-warm-theme
+
+# 或直接从 GitHub
+dsh plugin --profile desktop add github:yrsxy/dsh-warm-theme
+```
+
+也可以在 **插件市场** 里搜索「护眼配色」一键安装。
+
+装好后进入 **设置 → 通用 → 配色主题**，点选即刻生效。
+
+## 平台支持
+
+| | macOS | Windows |
+|---|---|---|
+| 配色 token 覆盖 | ✓ | ✓ |
+| 侧栏两段式底色 | ✓（原生同底，本包补色） | ✓（原生即两段式，无需干预） |
+| 浅色 / 深色 | ✓ | ✓ |
+| 实测宿主版本 | 0.2.1-rc.2 | 继承同一套 token，未单独实测 |
+
+Windows 的正文卡片带 `--dsh-windows-content-radius`（16px 圆角），
+这是 DSH 原生布局；本包只改颜色与材质，**不动圆角结构**，
+所以两套平台各自保留自己的原生外观。
 
 ## 配色
 
@@ -62,7 +89,16 @@ DSH 护眼配色主题包 —— 5 套低蓝光配色，通过官方 `ctx.theme.
 ## 使用
 
 安装后进入 **设置 → 通用 → 配色主题**，点选即可，立即生效并跨重启保留。
-选「跟随内置」即恢复 DSH 原生配色。
+选「跟随内置」即恢复 DSH 原生配色。选项旁的色块就是该套配色的实际底色与强调色。
+
+## 卸载
+
+```sh
+dsh plugin --profile desktop remove dsh-warm-theme
+```
+
+覆盖层随插件卸载一起注销，配色立即回到 DSH 内置值 ——
+没有残留文件，也没有改过任何内置资源。
 
 ## 工作原理
 
@@ -116,18 +152,33 @@ Windows 则走另一条分支（frame 用 sidebar-fill），天然两段式。
 本包用一条 CSS 规则给 macOS 补上同类效果：
 
 ```css
+[data-platform='darwin'] div[class*='_sidebarCol'],
 div:has(> [data-window-drag]):not([data-window-drag]) {
   background: var(--dsw-specific-sidebar-fill);
 }
 ```
 
-两个包都用 CSS Modules、类名带构建哈希，无法直接引用；因此改用 ui-sidebar
-在侧栏根容器内渲染的稳定标记 `data-window-drag`（macOS 标题栏拖拽区，**仅在
-macOS 渲染**，且是侧栏根的直接子元素）反查父容器。
+为什么不能只覆盖 token：macOS 那条规则**不是纯 token**，里面混了硬编码的蓝色：
 
-**失效行为**：若 DSH 升级后该属性改名，本规则静默失效，侧栏回落到原生同色 ——
-不报错、不影响任何其它样式。
+```css
+color-mix(in srgb, color-mix(in srgb, var(--dsw-specific-sidebar-fill) 97%, #7a9bf0) 40%, transparent)
+```
+
+只覆盖 `--dsw-specific-sidebar-fill` 会留下一个蓝色调，必须整条 `background` 覆盖。
+
+**两条选择器，一主一备**：
+
+| | 锚点 | 为什么 |
+|---|---|---|
+| 主 | `[class*='_sidebarCol']` | CSS Modules 只给**哈希前缀**加随机值，`sidebarCol` 这个 local 名是稳定的；不依赖 DOM 层级，也不怕哈希变化 |
+| 备 | `div:has(> [data-window-drag])` | 万一 ui-layout 改了类名，还能按结构反查（`data-window-drag` 是 macOS 标题栏拖拽区，仅在 macOS 渲染） |
+
+两条都命中时取值相同，重复也无害。`.centerCol` / `.frame` 本包一概不碰 ——
+那两个在 Windows 上由原生布局正确驱动，越位覆盖会破坏 Windows 的圆角卡片。
+
+**失效行为**：若 DSH 升级后类名与属性都改名，本规则静默失效，侧栏回落到原生同色 ——
+不报错、不影响任何其它样式。`test/smoke.mjs` 里有断言盯着这件事。
 
 ## 许可
 
-MIT
+MIT © 2026 yrsxy

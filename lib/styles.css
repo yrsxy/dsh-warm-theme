@@ -112,18 +112,28 @@
  * Windows 走另一条分支（frame 用 sidebar-fill），天然两段式；
  * 这里给 macOS 补上同类效果。
  *
- * 选择器：两个包都用 CSS Modules，类名带构建哈希（_3WPZCG_root /
- * _6Qf49G_frame），不能直接引用。改用 ui-sidebar 在侧栏根容器内
- * 渲染的稳定标记 data-window-drag（macOS 标题栏拖拽区），以 :has()
- * 反查其父容器补底色。
+ * 选择器：两个包都用 CSS Modules —— 类名形如 `_6Qf49G_sidebarCol`，
+ * 前面的哈希每次构建都会变，但 **local 名 `sidebarCol` 是稳定的**。
+ * 所以主锚点用属性子串匹配 `[class*="_sidebarCol"]`：不依赖 DOM 层级，
+ * 也不怕哈希变化。
+ *
+ * 保留 `:has()` 那条作为备用锚点：万一 DSH 改掉类名，还能按结构反查
+ * （data-window-drag 是 macOS 标题栏拖拽区，为侧栏根的直接子元素）。
+ * 两条命中同一元素时取值相同，重复失效也无害。
+ *
+ * 为什么必须压掉原生值：macOS 那条规则不是纯 token ——
+ *   `color-mix(..., var(--dsw-specific-sidebar-fill) 97%, #7a9bf0)`
+ * 里混了硬编码的蓝色 #7a9bf0，顶部还有 `#7a9bf01a` 的渐变起手。
+ * 只覆盖 token 会留下蓝色调，必须整条 background 覆盖。
  *
  * 注意：不用 [data-sidebar-collapsed]——那是 frame 上的可选属性，
  * 仅在折叠时存在（值为 undefined 时 React 不输出该属性），
  * 展开时应为不存在，不能当常驻锚点。
  *
- * 失效行为：若 DSH 升级后属性改名，本规则静默失效，侧栏回落到
- * 原生同色，不报错、不影响任何其它样式。
+ * 失效行为：若 DSH 升级后类名与属性都改名，本规则静默失效，侧栏回落
+ * 到原生同色，不报错、不影响任何其它样式。test/smoke.mjs 里有断言盯着。
  */
+[data-platform='darwin'] div[class*='_sidebarCol'],
 div:has(> [data-window-drag]):not([data-window-drag]) {
   background: var(--dsw-specific-sidebar-fill);
 }

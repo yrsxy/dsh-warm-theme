@@ -214,20 +214,46 @@ assert(!!styleEl, '<style> 带 data-dsh-warm-theme 标记')
 assert(styleEl.textContent.includes('.wt_row'), '样式内容包含 .wt_row 规则')
 assert(styleEl.textContent.includes('--dsw-alias-brand-primary'), '样式使用 DSH 语义 token')
 
-// macOS 侧边栏底色修正必须被构建保留（构建只替换 __CSS__，此处防回归）
+// ---- macOS 侧边栏底色修正（唯一的非 token 例外）----
+// 剥掉注释再分析：注释里会提到 DSH 的类名与选择器，直接做子串匹配会误判。
+const css = styleEl.textContent.replace(/\/\*[\s\S]*?\*\//g, '')
+
+// 主锚点：CSS Modules 的 local 名稳定，只有哈希前缀会变
+assert(css.includes("[class*='_sidebarCol']"), '样式含主锚点 [class*="_sidebarCol"]')
+// 备用锚点：万一类名改了，还能按 DOM 结构反查
+assert(css.includes('div:has(> [data-window-drag])'), '样式含 :has() 备用锚点')
+// 必须整条 background 覆盖 —— 原生值里混了硬编码蓝色，覆盖 token 压不住
 assert(
-  styleEl.textContent.includes('div:has(> [data-window-drag])'),
-  '样式含 macOS 侧边栏底色规则',
-)
-assert(
-  styleEl.textContent.includes('background: var(--dsw-specific-sidebar-fill)'),
-  '侧边栏规则使用 sidebar-fill token',
+  css.includes('background: var(--dsw-specific-sidebar-fill)'),
+  '侧边栏规则使用 sidebar-fill token（整条覆盖 background）',
 )
 // 不能误用只在折叠时存在的属性当锚点
-assert(
-  !styleEl.textContent.includes('[data-sidebar-collapsed] >'),
-  '未把 data-sidebar-collapsed 当常驻锚点',
-)
+assert(!css.includes('[data-sidebar-collapsed] >'), '未把 data-sidebar-collapsed 当常驻锚点')
+
+// ---- 跨平台安全 ----
+// 任何触碰 DSH 布局容器的规则都必须限定在 darwin 下，否则会破坏 Windows
+// 原生布局（Windows 的 frame/sidebarCol 本来就用 sidebar-fill，
+// centerCol 还带 --dsh-windows-content-radius 圆角）。
+// 本包不该碰正文容器与外壳容器 —— 那两个在平台上都由 token 正确驱动。
+for (const cls of ['_centerCol', '_frame']) {
+  assert(!css.includes(cls), `样式不直接引用 DSH 布局类名 ${cls}`)
+}
+
+// 侧栏规则的每个选择器分支都必须带 darwin 限定
+// （引号形式不固定：[data-platform="darwin"] 与 [attr=darwin] 都合法）
+const DARWIN = /\[data-platform=(["']?)darwin\1\]/
+const sidebarRule = css.match(/([^{}]+)\{\s*background:\s*var\(--dsw-specific-sidebar-fill\)/)
+assert(!!sidebarRule, '能定位到侧栏规则体')
+if (sidebarRule) {
+  const selectors = sidebarRule[1].split(',').map((s) => s.trim()).filter(Boolean)
+  const unguarded = selectors.filter(
+    (s) => !DARWIN.test(s) && !s.includes('[data-window-drag]'),
+  )
+  assert(
+    unguarded.length === 0,
+    `侧栏规则各分支都限定在 macOS（未限定: ${unguarded.length} 个）`,
+  )
+}
 
 // 调用样式 disposer 应移除节点
 const styleEffect = effects.find((e) => e.disposer && typeof e.disposer === 'function')

@@ -1,8 +1,7 @@
 {
   "name": "dsh-warm-theme",
-  "version": "0.1.0",
-  "private": true,
-  "description": "DSH 护眼配色主题包 —— 5 套低蓝光配色，通过官方 ctx.theme.overrideTokens 扩展点覆盖语义 token，零布局改动、热生效。",
+  "version": "0.2.0",
+  "description": "DSH 护眼配色包 —— 5 套低蓝光配色，通过官方 ctx.theme.overrideTokens 扩展点覆盖语义 token，零布局改动、热生效。",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -16,20 +15,44 @@
   },
   "files": [
     "lib",
-    "cordis.yml",
-    "README.md"
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE",
+    "icon.svg"
   ],
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node test/smoke.mjs",
+    "prepublishOnly": "node build.mjs && node test/smoke.mjs"
+  },
   "keywords": [
     "dsh",
     "dsh-plugin",
     "deepseek-harness",
     "theme",
-    "theme-pack"
+    "theme-pack",
+    "palette",
+    "eye-care",
+    "warm-color",
+    "dark-mode"
   ],
   "license": "MIT",
+  "author": "yrsxy",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yrsxy/dsh-warm-theme.git"
+  },
+  "homepage": "https://github.com/yrsxy/dsh-warm-theme#readme",
+  "bugs": {
+    "url": "https://github.com/yrsxy/dsh-warm-theme/issues"
+  },
+  "engines": {
+    "node": ">=20",
+    "dsh": ">=0.2.1-rc.2"
+  },
   "dsh": {
     "bundle": {
-      "patch": "cordis.yml"
+      "patch": "./cordis.patch.yml"
     },
     "client": {
       "platform": "web",
