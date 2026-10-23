@@ -9,8 +9,18 @@
 | 双平台适配 + 元数据 + 图标 + 测试 | ✅ 已完成 |
 | GitHub 仓库 `yrsxy/dsh-warm-theme` | ✅ 已建，公开，6 个 topic，代码已推 |
 | 分支 `add-dsh-warm-theme`（fork 上，含条目文件） | ✅ 已推 |
-| npm 发布 | ⬜ 待你注册账号 |
+| npm 发布 | ✅ `dsh-warm-theme@0.2.0`（2026-10-23 14:11 +08:00），`latest` 指向它 |
 | 提 PR | ⬜ 等仓库满 24h（2026-10-24 13:38 之后） |
+
+npm 侧已完成，可直接核对：
+
+```sh
+npm view dsh-warm-theme version        # → 0.2.0
+npm view dsh-warm-theme maintainers    # → yrsxy
+```
+
+> `0.0.0-stage` 是 npm 分阶段发布的内部占位版本（`stub: true`，描述为
+> "Temporary package placeholder for staged publishing"），不是误发，不用处理。
 
 开 PR 的入口（到点直接点）：
 
@@ -48,39 +58,51 @@ https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/compare/main...yrsxy:ad
 
 ## 1. npm 发布
 
-### 1.1 修一下 npm 缓存权限（一次性）
+### 1.1 两个踩过的坑（已排查清楚）
 
-本机 `~/.npm` 里有 root 所有的文件，会导致 `npm publish` 直接 EPERM：
+**① `~/.npm` 写不进去，不是权限问题。**
 
-```sh
-sudo chown -R $(id -u):$(id -g) ~/.npm
-```
-
-不想动权限的话，每次发布都能用干净缓存绕开：
+`~/.npm` 的所有者本来就是当前用户，EPERM 的真因是 **DSH 的文件沙箱只允许写工作区**。
+绕开方式是指定一个可写缓存目录：
 
 ```sh
 npm publish --cache /tmp/npmcache-wt
 ```
 
-### 1.2 注册 npm 账号（需要你自己操作）
+**② 账号没开 2FA 时，bypass token 是无效的。**
 
-1. 打开 https://www.npmjs.com/signup 注册（建议用户名就用 `yrsxy`）
-2. 邮箱收验证邮件并点确认
-3. **开启 2FA**（现在 npm 强制要求发布时二次验证，不开会卡住）
+npm 的发布策略是「2FA 验证码 **或** 带 bypass 2FA 的 granular token」。账号没有 2FA 时，
+token 页面上那个 `Bypass two-factor authentication (2FA)` 复选框勾了也不生效，发布必定回：
 
-### 1.3 登录并发布
+```
+403 Two-factor authentication or granular access token with bypass 2fa enabled is required to publish packages.
+```
+
+特征是 `otplease` 直接抛异常、终端根本不出现 `Enter OTP:` 提示。
+另外 2FA 方式要选 **Authentication App**，不要选 **Security Key** ——
+WebAuthn 生成的验证码 CLI 拿不到，发版反而更卡。
+
+### 1.2 账号状态（已就绪）
+
+- 用户名 `yrsxy`
+- `two-factor auth: auth-and-writes`（发布与改设置都要码，符合 npm 要求）
+
+### 1.3 发布
 
 ```sh
 cd /Users/yangrenshun/Desktop/code/diy/dsh-warm-theme
 npm login                    # 浏览器会弹出授权页，点 Approve
 npm whoami                   # 确认登录成功
 npm publish --access public  # prepublishOnly 会自动重新 build + 跑测试
+# → 提示 Enter OTP: 时输验证器上的 6 位码
 ```
 
-发布成功后验证：
+发新版时记得先改 `package.json` 的 `version`，已发布过的版本号不能再覆盖。
+
+验证：
 
 ```sh
-npm view dsh-warm-theme version   # 应输出 0.2.0
+npm view dsh-warm-theme version   # → 0.2.0
 ```
 
 ---

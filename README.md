@@ -1,5 +1,8 @@
 # dsh-warm-theme
 
+[![npm version](https://img.shields.io/npm/v/dsh-warm-theme.svg)](https://www.npmjs.com/package/dsh-warm-theme)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 DSH 护眼配色包 —— 5 套低蓝光配色，通过官方 `ctx.theme.overrideTokens()` 扩展点覆盖语义 token。
 
 **零布局改动 · 热生效 · 卸载即可还原 · macOS / Windows 双平台。**
