@@ -2,6 +2,22 @@
 
 目标：让 `dsh-warm-theme` 出现在 **DSH 插件市场** 与 **awesome-dsh-plugin** 列表里，并能在 macOS 与 Windows 上通过一条命令安装。
 
+## 当前进度
+
+| 事项 | 状态 |
+|---|---|
+| 双平台适配 + 元数据 + 图标 + 测试 | ✅ 已完成 |
+| GitHub 仓库 `yrsxy/dsh-warm-theme` | ✅ 已建，公开，6 个 topic，代码已推 |
+| 分支 `add-dsh-warm-theme`（fork 上，含条目文件） | ✅ 已推 |
+| npm 发布 | ⬜ 待你注册账号 |
+| 提 PR | ⬜ 等仓库满 24h（2026-10-24 13:38 之后） |
+
+开 PR 的入口（到点直接点）：
+
+```
+https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/compare/main...yrsxy:add-dsh-warm-theme
+```
+
 ---
 
 ## 三条发布通道（互相独立，但索引依赖 npm）
@@ -101,22 +117,23 @@ Clash 在系统代理模式下，应用程序把**域名**交给代理，由代�
 
 **结论：两个只能开一个。** 走 GitHub 时用 Watt Toolkit，别开系统代理。
 
-### 2.2 推送
+### 2.2 推送 ✅ 已完成
 
-> 当前环境 GitHub 可达（git 已实测 `ls-remote` 成功），但**没有推送凭据**：
-> 未配置 credential helper、无 SSH key，`~/.ssh` 受沙箱保护写不进去。
-> 推送前需要先配一个 PAT 或 SSH key。
+仓库已建于 2026-10-23T05:38Z，公开，默认分支 `main`，topics：
+`dsh-plugin` `deepseek-harness` `dsh` `theme` `theme-pack` `eye-care`。
+
+推送方式是 HTTPS + PAT（`~/.ssh` 受文件沙箱保护写不进去，SSH 路线不可用）：
 
 ```sh
-cd /Users/yangrenshun/Desktop/code/diy/dsh-warm-theme
+git -c http.extraHeader="Authorization: Basic $(printf 'yrsxy:%s' "$TOKEN" | base64)" \
+    push -u origin main
+```
 
-git add -A
-git commit -m "feat: 0.2.0 — 双平台适配、市场元数据、发布用图标"
+**这个 PAT 只用了这一次，已经删除并作废。** 后续如果还要推：
 
-# 先在网页端建空仓库 https://github.com/new（不要勾 README / .gitignore）
-git remote add origin https://github.com/yrsxy/dsh-warm-theme.git
-git branch -M main
-git push -u origin main
+```sh
+git config --global credential.helper osxkeychain   # 让钥匙串记住，之后不用再填
+git push
 ```
 
 ### 建完后必做两件事
@@ -143,18 +160,26 @@ description:
 icon: https://raw.githubusercontent.com/yrsxy/dsh-warm-theme/main/assets/icon-180.png
 ```
 
-### 3.2 提 PR
+### 3.2 提 PR ✅ 分支已就绪，只差点按钮
+
+已完成：fork 了列表仓库（`yrsxy/awesome-dsh-plugin`），从 `main` 拉出分支
+`add-dsh-warm-theme`，把条目文件提交到 `data/plugins/yrsxy__dsh-warm-theme.yml`。
+远端内容已校验。
+
+**到 2026-10-24 13:38 之后**，打开这个链接点 **Create pull request**：
+
+```
+https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/compare/main...yrsxy:add-dsh-warm-theme
+```
+
+> 别提前点。`pr-gate.yml` 会自动校验仓库年龄，不满 24 小时 PR 会直接标红。
+
+如果想本地重走一遍（可跳过，分支已经有了）：
 
 ```sh
-git clone https://github.com/awesome-dsh-plugin/awesome-dsh-plugin.git
-cd awesome-dsh-plugin
-cp /Users/yangrenshun/Desktop/code/diy/dsh-warm-theme/market/yrsxy__dsh-warm-theme.yml \
-   data/plugins/yrsxy__dsh-warm-theme.yml
-git checkout -b add-dsh-warm-theme
-git add data/plugins/yrsxy__dsh-warm-theme.yml
-git commit -m "Add yrsxy/dsh-warm-theme"
-git push -u origin add-dsh-warm-theme
-# 然后在 GitHub 网页开 PR
+git clone https://github.com/yrsxy/awesome-dsh-plugin.git
+cd awesome-dsh-plugin && git checkout add-dsh-warm-theme
+# 条目文件已经在 data/plugins/yrsxy__dsh-warm-theme.yml
 ```
 
 **只加这一个文件。** 两个 README 由脚本从 `data/plugins/*.yml` 生成，
