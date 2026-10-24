@@ -7,6 +7,25 @@ DSH 护眼配色包 —— 5 套低蓝光配色，通过官方 `ctx.theme.overri
 
 **零布局改动 · 热生效 · 卸载即可还原 · macOS / Windows 双平台。**
 
+## 预览
+
+<table>
+  <tr>
+    <td align="center"><img src="assets/screenshots/warm-paper.png" width="240"><br><sub>暖纸 Warm Paper</sub></td>
+    <td align="center"><img src="assets/screenshots/old-book.png" width="240"><br><sub>柔褐书页 Old Book</sub></td>
+    <td align="center"><img src="assets/screenshots/quiet-olive.png" width="240"><br><sub>橄榄静绿 Quiet Olive</sub></td>
+    <td align="center"><img src="assets/screenshots/tea-brown.png" width="240"><br><sub>茶褐 Tea Brown</sub></td>
+    <td align="center"><img src="assets/screenshots/mist-blue.png" width="240"><br><sub>雾蓝 Mist Blue</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/screenshots/dark-warm-paper.png" width="240"><br><sub>暖纸 · 深色</sub></td>
+    <td align="center"><img src="assets/screenshots/dark-tea-brown.png" width="240"><br><sub>茶褐 · 深色</sub></td>
+    <td colspan="3"></td>
+  </tr>
+</table>
+
+> 预览图由配色 token 直接渲染。macOS 侧栏为系统原生毛玻璃，实际观感比图中更浅更透。
+
 ## 安装
 
 ```sh
