@@ -1,7 +1,7 @@
 {
   "name": "dsh-warm-theme",
   "version": "0.2.0",
-  "description": "DSH 护眼配色包 —— 5 套低蓝光配色，通过官方 ctx.theme.overrideTokens 扩展点覆盖语义 token，零布局改动、热生效。",
+  "description": "DSH 护眼配色包 —— 5 套低蓝光配色，通过官方 ctx.theme.overrideTokens 扩展点覆盖语义 token，零布局改动、热生效，在「设置 → 通用」中一键切换。",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
